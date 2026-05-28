@@ -1,0 +1,23 @@
+# Exclude from `docker build` context — daemon doesn't need these.
+# Files actually COPYed by the Dockerfile are NOT in this list.
+
+.git
+.gitignore
+.dockerignore
+README.md
+LICENSE
+
+# Editor / IDE
+.vscode
+.vs
+.idea
+*.swp
+*.swo
+
+# OS junk
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Logs
+*.log

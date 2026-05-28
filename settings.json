@@ -1,0 +1,36 @@
+{
+  "env": {
+    "ENABLE_LSP_TOOL": "1",
+    "MSBUILDUSESERVER": "1",
+    "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
+    "DOTNET_NOLOGO": "1"
+  },
+  "enabledPlugins": {
+    "microsoft-docs@microsoft-docs-marketplace": true,
+    "roslyn-lsp@claude-roslyn-lsp": true,
+    "dotnet@dotnet-agent-skills": true,
+    "dotnet-diag@dotnet-agent-skills": true,
+    "dotnet-msbuild@dotnet-agent-skills": true,
+    "dotnet-nuget@dotnet-agent-skills": true,
+    "dotnet-test@dotnet-agent-skills": true,
+    "dotnet-upgrade@dotnet-agent-skills": true
+  },
+  "permissions": {
+    "deny": [
+      "Read(./**/appsettings*.json)",
+      "Read(./**/Settings.*.json)",
+      "Read(./**/bin/**)",
+      "Read(./**/obj/**)",
+      "Bash(cat *appsettings*)",
+      "Bash(cat *Settings.*.json*)",
+      "Bash(head *appsettings*)",
+      "Bash(head *Settings.*.json*)",
+      "Bash(tail *appsettings*)",
+      "Bash(tail *Settings.*.json*)",
+      "Bash(more *appsettings*)",
+      "Bash(more *Settings.*.json*)"
+    ]
+  },
+  "autoUpdatesChannel": "latest",
+  "skipDangerousModePermissionPrompt": true
+}
