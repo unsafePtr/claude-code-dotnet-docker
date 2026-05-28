@@ -4,19 +4,28 @@ A self-contained Docker image that runs Claude Code in a .NET 10 dev environment
 
 ## Quick start
 
-```powershell
-# Build
-docker build -t claude-code-dotnet-docker .
+Pre-built images are published on every push to `main`:
 
-# Run (PowerShell)
+- `docker.io/unsafeptr/claude-code-dotnet-docker:latest`
+- `ghcr.io/unsafeptr/claude-code-dotnet-docker:latest`
+
+Pull and run — no clone or build required:
+
+```powershell
 docker run --rm -it `
   -v "C:\path\to\your\project:/workspace" `
   -v claude-config:/home/claude/.claude `
   -v "$env:USERPROFILE\.claude\.credentials.json:/home/claude/.claude/.credentials.json" `
-  claude-code-dotnet-docker
+  unsafeptr/claude-code-dotnet-docker
 ```
 
 The container drops you into `/workspace` as user `claude` with `zsh`, `claude` on `PATH`, and the .NET SDK ready.
+
+### Build locally (optional)
+
+```powershell
+docker build -t claude-code-dotnet-docker .
+```
 
 ## What's preinstalled
 
