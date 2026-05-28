@@ -2,6 +2,8 @@
 
 A self-contained Docker image that runs Claude Code in a .NET 10 dev environment with the Roslyn LSP integration pre-installed. Run from a terminal via `docker run`; not designed as a VS Code Dev Container.
 
+**Source:** https://github.com/unsafePtr/claude-code-dotnet-docker
+
 ## Quick start
 
 Pre-built images are published on every push to `main`:
