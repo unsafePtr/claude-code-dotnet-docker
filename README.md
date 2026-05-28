@@ -16,10 +16,13 @@ docker run --rm -it `
   -v "C:\path\to\your\project:/workspace" `
   -v claude-config:/home/claude/.claude `
   -v "$env:USERPROFILE\.claude\.credentials.json:/home/claude/.claude/.credentials.json" `
-  unsafeptr/claude-code-dotnet-docker
+  unsafeptr/claude-code-dotnet-docker `
+  claude --dangerously-skip-permissions
 ```
 
-The container drops you into `/workspace` as user `claude` with `zsh`, `claude` on `PATH`, and the .NET SDK ready.
+The container launches Claude Code directly inside `/workspace` as user `claude`, with the .NET SDK and Roslyn LSP integration ready. The entrypoint pre-accepts the permission prompt, so `--dangerously-skip-permissions` runs unattended with full workspace RW.
+
+Drop the trailing `claude --dangerously-skip-permissions` to get a `zsh` shell instead.
 
 ### Build locally (optional)
 
