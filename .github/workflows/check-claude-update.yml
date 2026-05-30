@@ -1,10 +1,13 @@
 name: check-claude-update
 
 # Daily check for a new Claude Code release. If downloads.claude.ai reports a
-# version newer than the one pinned in the Dockerfile, open (or update) a PR
-# bumping CLAUDE_CODE_VERSION. Merging that PR and tagging v<version> triggers
-# the docker workflow, which publishes the image. If the pinned version already
-# matches the latest, this job no-ops: no PR, no build, no new image.
+# version newer than the one pinned in the Dockerfile, build and publish the
+# image for that version, then commit the version bump to main so the repo
+# records exactly what was shipped. If the pinned version already matches the
+# latest, this no-ops: no build, no commit, no new image.
+#
+# Order is build-then-commit: a failed build leaves git and the registry
+# consistent (both still on the old version) rather than drifting.
 
 on:
   schedule:
@@ -13,11 +16,15 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
+  packages: write
 
 jobs:
   check:
     runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.ver.outputs.changed }}
+      latest: ${{ steps.ver.outputs.latest }}
+      current: ${{ steps.ver.outputs.current }}
     steps:
       - uses: actions/checkout@v6
 
@@ -36,23 +43,27 @@ jobs:
             echo "Update available: $current -> $latest"
           fi
 
-      - name: Bump pinned version
-        if: steps.ver.outputs.changed == 'true'
-        run: |
-          sed -i "s/^ARG CLAUDE_CODE_VERSION=.*/ARG CLAUDE_CODE_VERSION=${{ steps.ver.outputs.latest }}/" Dockerfile
+  build:
+    needs: check
+    if: needs.check.outputs.changed == 'true'
+    uses: ./.github/workflows/build.yml
+    with:
+      version: ${{ needs.check.outputs.latest }}
+    secrets: inherit
 
-      - name: Open pull request
-        if: steps.ver.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v7
+  commit:
+    needs: [check, build]
+    if: needs.check.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
         with:
-          commit-message: "chore: bump Claude Code to ${{ steps.ver.outputs.latest }}"
-          title: "chore: bump Claude Code to ${{ steps.ver.outputs.latest }}"
-          body: |
-            Automated update: Claude Code `${{ steps.ver.outputs.current }}` → `${{ steps.ver.outputs.latest }}`.
+          ref: main
 
-            Source: https://downloads.claude.ai/claude-code-releases/latest
-
-            After merging, tag `v${{ steps.ver.outputs.latest }}` on main to publish the image.
-          branch: claude-code-update
-          base: main
-          delete-branch: true
+      - name: Bump pinned version and push
+        run: |
+          sed -i "s/^ARG CLAUDE_CODE_VERSION=.*/ARG CLAUDE_CODE_VERSION=${{ needs.check.outputs.latest }}/" Dockerfile
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore: bump Claude Code to ${{ needs.check.outputs.latest }}"
+          git push
