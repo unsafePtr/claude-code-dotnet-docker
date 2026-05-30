@@ -6,8 +6,21 @@ FROM ubuntu:noble AS claude-and-plugins
 RUN apt-get update && apt-get install -y --no-install-recommends \
   ca-certificates curl git jq && \
   rm -rf /var/lib/apt/lists/*
-RUN curl -fsSL https://claude.ai/install.sh | bash && \
-  cp /root/.local/bin/claude /claude-binary
+# Pinned Claude Code version. Bumped automatically by the
+# check-claude-update workflow (.github/workflows/check-claude-update.yml),
+# which opens a PR whenever downloads.claude.ai/.../latest moves ahead of this.
+ARG CLAUDE_CODE_VERSION=2.1.158
+RUN base="https://downloads.claude.ai/claude-code-releases" && \
+  case "$(dpkg --print-architecture)" in \
+    amd64) platform="linux-x64" ;; \
+    arm64) platform="linux-arm64" ;; \
+    *) echo "unsupported architecture: $(dpkg --print-architecture)" >&2; exit 1 ;; \
+  esac && \
+  curl -fsSL "${base}/${CLAUDE_CODE_VERSION}/manifest.json" -o /tmp/manifest.json && \
+  checksum="$(jq -r ".platforms[\"${platform}\"].checksum" /tmp/manifest.json)" && \
+  curl -fsSL "${base}/${CLAUDE_CODE_VERSION}/${platform}/claude" -o /claude-binary && \
+  echo "${checksum}  /claude-binary" | sha256sum -c - && \
+  chmod +x /claude-binary && rm /tmp/manifest.json
 COPY plugins-src /plugins-src
 COPY install-plugins.sh /tmp/install-plugins.sh
 RUN chmod +x /tmp/install-plugins.sh && /tmp/install-plugins.sh

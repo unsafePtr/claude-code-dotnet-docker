@@ -1,0 +1,58 @@
+name: check-claude-update
+
+# Daily check for a new Claude Code release. If downloads.claude.ai reports a
+# version newer than the one pinned in the Dockerfile, open (or update) a PR
+# bumping CLAUDE_CODE_VERSION. Merging that PR and tagging v<version> triggers
+# the docker workflow, which publishes the image. If the pinned version already
+# matches the latest, this job no-ops: no PR, no build, no new image.
+
+on:
+  schedule:
+    - cron: '0 6 * * *'   # daily 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve versions
+        id: ver
+        run: |
+          latest=$(curl -fsSL https://downloads.claude.ai/claude-code-releases/latest)
+          current=$(grep -oP 'ARG CLAUDE_CODE_VERSION=\K.*' Dockerfile)
+          echo "latest=$latest"   >> "$GITHUB_OUTPUT"
+          echo "current=$current" >> "$GITHUB_OUTPUT"
+          if [ "$latest" = "$current" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Up to date on $current; nothing to do."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Update available: $current -> $latest"
+          fi
+
+      - name: Bump pinned version
+        if: steps.ver.outputs.changed == 'true'
+        run: |
+          sed -i "s/^ARG CLAUDE_CODE_VERSION=.*/ARG CLAUDE_CODE_VERSION=${{ steps.ver.outputs.latest }}/" Dockerfile
+
+      - name: Open pull request
+        if: steps.ver.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore: bump Claude Code to ${{ steps.ver.outputs.latest }}"
+          title: "chore: bump Claude Code to ${{ steps.ver.outputs.latest }}"
+          body: |
+            Automated update: Claude Code `${{ steps.ver.outputs.current }}` → `${{ steps.ver.outputs.latest }}`.
+
+            Source: https://downloads.claude.ai/claude-code-releases/latest
+
+            After merging, tag `v${{ steps.ver.outputs.latest }}` on main to publish the image.
+          branch: claude-code-update
+          base: main
+          delete-branch: true
