@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Pinned Claude Code version. Bumped automatically by the
 # check-claude-update workflow (.github/workflows/check-claude-update.yml),
 # which opens a PR whenever downloads.claude.ai/.../latest moves ahead of this.
-ARG CLAUDE_CODE_VERSION=2.1.158
+ARG CLAUDE_CODE_VERSION=2.1.159
 RUN base="https://downloads.claude.ai/claude-code-releases" && \
   case "$(dpkg --print-architecture)" in \
     amd64) platform="linux-x64" ;; \
