@@ -3,6 +3,7 @@
   "extends": ["config:recommended"],
   "enabledManagers": ["github-actions", "custom.regex"],
   "dependencyDashboard": true,
+  "prHourlyLimit": 0,
   "customManagers": [
     {
       "customType": "regex",
