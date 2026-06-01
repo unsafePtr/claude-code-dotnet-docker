@@ -1,0 +1,56 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "enabledManagers": ["github-actions", "custom.regex"],
+  "dependencyDashboard": true,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Vendored plugin commit SHA: dotnet/skills",
+      "fileMatch": ["^plugins-src/dotnet-agent-skills/\\.commit-sha$"],
+      "matchStrings": ["(?<currentDigest>[a-f0-9]{40})"],
+      "depNameTemplate": "dotnet/skills",
+      "packageNameTemplate": "https://github.com/dotnet/skills",
+      "datasourceTemplate": "git-refs",
+      "currentValueTemplate": "main"
+    },
+    {
+      "customType": "regex",
+      "description": "Vendored plugin commit SHA: ClaudeCodeRoslynLspProxy",
+      "fileMatch": ["^plugins-src/claude-roslyn-lsp/\\.commit-sha$"],
+      "matchStrings": ["(?<currentDigest>[a-f0-9]{40})"],
+      "depNameTemplate": "unsafePtr/ClaudeCodeRoslynLspProxy",
+      "packageNameTemplate": "https://github.com/unsafePtr/ClaudeCodeRoslynLspProxy",
+      "datasourceTemplate": "git-refs",
+      "currentValueTemplate": "main"
+    },
+    {
+      "customType": "regex",
+      "description": "Vendored plugin commit SHA: microsoftdocs/mcp",
+      "fileMatch": ["^plugins-src/microsoft-docs-marketplace/\\.commit-sha$"],
+      "matchStrings": ["(?<currentDigest>[a-f0-9]{40})"],
+      "depNameTemplate": "microsoftdocs/mcp",
+      "packageNameTemplate": "https://github.com/microsoftdocs/mcp",
+      "datasourceTemplate": "git-refs",
+      "currentValueTemplate": "main"
+    },
+    {
+      "customType": "regex",
+      "description": "git-delta version pinned in Dockerfile ARG",
+      "fileMatch": ["^Dockerfile$"],
+      "matchStrings": ["ARG GIT_DELTA_VERSION=(?<currentValue>\\S+)"],
+      "depNameTemplate": "dandavison/delta",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v?(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
+      "description": "zsh-in-docker version pinned in Dockerfile ARG",
+      "fileMatch": ["^Dockerfile$"],
+      "matchStrings": ["ARG ZSH_IN_DOCKER_VERSION=(?<currentValue>\\S+)"],
+      "depNameTemplate": "deluan/zsh-in-docker",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v?(?<version>.+)$"
+    }
+  ]
+}

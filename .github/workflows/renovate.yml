@@ -1,0 +1,30 @@
+name: renovate
+
+# Weekly self-hosted Renovate run. Opens PRs bumping the pinned dependencies
+# that don't move on their own: the vendored plugin commit SHAs, the git-delta
+# and zsh-in-docker ARG versions, and GitHub Actions refs. Config lives in
+# renovate.json. CLAUDE_CODE_VERSION is intentionally not managed here — the
+# check-claude-update workflow owns it. Merged PRs ride into the published
+# image on the next Claude rebuild.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'   # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: renovatebot/github-action@v40
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          RENOVATE_REPOSITORIES: ${{ github.repository }}
+          RENOVATE_ONBOARDING: 'false'
+          LOG_LEVEL: info
