@@ -4,10 +4,12 @@ A self-contained Docker image that runs Claude Code in a .NET 10 dev environment
 
 ## Quick start
 
-Pre-built images are published on every push to `main`:
+Pre-built images are published to Docker Hub and GHCR:
 
 - `docker.io/unsafeptr/claude-code-dotnet-docker:latest`
 - `ghcr.io/unsafeptr/claude-code-dotnet-docker:latest`
+
+`:latest` always tracks the newest build; see [Versioning](#versioning) for pinnable tags.
 
 Pull and run — no clone or build required:
 
@@ -35,10 +37,26 @@ docker build -t claude-code-dotnet-docker .
 | Component | Source | Size |
 |---|---|---|
 | .NET 10 SDK | `mcr.microsoft.com/dotnet/sdk:10.0` base | ~630 MB |
-| Claude Code CLI | Native binary from `claude.ai/install.sh` | ~230 MB |
+| Claude Code CLI | Pinned native binary, SHA-256 verified at build | ~240 MB |
 | `roslyn-language-server`, `ClaudeCodeRoslynLspProxy` | `dotnet tool install --global` | ~280 MB |
 | Plugin marketplaces (3) | Fetched at build from pinned SHAs | ~7 MB |
 | CLI utilities | `gh`, `ripgrep`, `git-delta`, `fzf`, `tree`, `jq`, `nano`, `dnsutils`, `iproute2`, `zsh` + oh-my-zsh + powerlevel10k | — |
+
+## Versioning
+
+- `:latest` — newest build, updated automatically (see below).
+- `:<version>` (e.g. `:2.1.159`, `:2.1`) — immutable, pinnable tags.
+
+The version line started on the repo's own semver (`0.2.0`) and from there tracks the bundled **Claude Code version**: each new Claude Code release is published as an image tagged with that version and `:latest` is moved to it. Pin a specific tag if you need a stable Claude Code release.
+
+## Staying up to date
+
+The image keeps itself current with no manual work:
+
+- **Claude Code** — a daily workflow checks `downloads.claude.ai` for a new release; when one appears it builds, smoke-tests, and publishes the image, then commits the version bump. No-ops when already current.
+- **Plugins & tools** — a weekly [Renovate](https://docs.renovatebot.com/) run opens a single PR bumping the pinned plugin SHAs, `git-delta`, `zsh-in-docker`, and GitHub Actions. Merging it ships on the next build.
+- **Pre-publish smoke test** — every build runs the image and verifies `claude --version` and `dotnet --version` before pushing, so a broken image is never published.
+- **Manual release** — push a `v*` tag on `main` to build and publish on demand (the image tag is the git tag; the Claude version comes from the Dockerfile).
 
 ## Plugins
 
@@ -60,6 +78,8 @@ plugins-src/<name>/
 At build time, `install-plugins.sh` clones each repo at its pinned SHA into a temp dir, then materialises the plugin layout that Claude Code expects under `/usr/local/share/claude-defaults/plugins/`. On first container start, `entrypoint.sh` copies that into the user's `~/.claude/plugins/` (via the named volume).
 
 ### Updating a plugin
+
+Renovate bumps these automatically in its weekly PR. To do it by hand:
 
 1. Look up the new SHA on GitHub
 2. Overwrite `plugins-src/<name>/.commit-sha`
