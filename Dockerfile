@@ -33,7 +33,7 @@ ENV TZ="$TZ"
 
 # Install CLI utilities in a single layer. (PowerShell is already in the
 # .NET SDK base image — no need to apt-install it.)
-ARG GIT_DELTA_VERSION=0.18.2
+ARG GIT_DELTA_VERSION=0.19.2
 RUN rm -f /etc/dpkg/dpkg.cfg.d/excludes && \
   apt-get update && apt-get install -y --no-install-recommends \
   less \
@@ -100,7 +100,7 @@ RUN dotnet tool install --global roslyn-language-server --prerelease && \
   dotnet tool install --global ClaudeCodeRoslynLspProxy
 
 # Install zsh with powerlevel10k theme
-ARG ZSH_IN_DOCKER_VERSION=1.2.0
+ARG ZSH_IN_DOCKER_VERSION=1.2.1
 RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v${ZSH_IN_DOCKER_VERSION}/zsh-in-docker.sh)" -- \
   -p git \
   -p fzf \
