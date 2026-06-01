@@ -49,6 +49,35 @@ jobs:
             type=semver,pattern={{version}},value=${{ inputs.version }}
             type=semver,pattern={{major}}.{{minor}},value=${{ inputs.version }}
 
+      # Build once into the local daemon and smoke-test the real image before
+      # publishing. Gates both the automated and manual release paths so a
+      # broken image (bad Claude binary, failed dotnet tool install, etc.)
+      # never gets pushed. Single-platform (amd64) is fine — that's what the
+      # push step builds too.
+      - name: Build for smoke test
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          tags: claude-code-dotnet:smoke-test
+          build-args: |
+            CLAUDE_CODE_VERSION=${{ inputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test
+        run: |
+          img=claude-code-dotnet:smoke-test
+          echo "== claude --version =="
+          claude_ver=$(docker run --rm "$img" claude --version)
+          echo "$claude_ver"
+          echo "$claude_ver" | grep -q "${{ inputs.version }}" \
+            || { echo "::error::claude --version did not report ${{ inputs.version }}"; exit 1; }
+          echo "== dotnet --version =="
+          docker run --rm "$img" dotnet --version
+          echo "== dotnet global tools =="
+          docker run --rm "$img" dotnet tool list --global
+
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
@@ -59,7 +88,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Resolve repo description
         id: desc
