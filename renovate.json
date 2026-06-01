@@ -4,6 +4,13 @@
   "enabledManagers": ["github-actions", "custom.regex"],
   "dependencyDashboard": true,
   "prHourlyLimit": 0,
+  "packageRules": [
+    {
+      "description": "Bundle every update into a single weekly PR",
+      "matchPackageNames": ["*"],
+      "groupName": "all dependencies"
+    }
+  ],
   "customManagers": [
     {
       "customType": "regex",
