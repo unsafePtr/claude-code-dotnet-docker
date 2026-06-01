@@ -49,6 +49,7 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       version: ${{ needs.check.outputs.latest }}
+      claudeVersion: ${{ needs.check.outputs.latest }}
     secrets: inherit
 
   commit:

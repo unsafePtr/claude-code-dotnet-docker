@@ -1,15 +1,21 @@
 name: build
 
-# Reusable build/push of the image, parameterized by the Claude Code version.
-# Called by docker.yml (manual tag releases) and check-claude-update.yml
-# (automated daily releases). The version is passed as a build-arg so the
-# image content is decoupled from whatever the checked-out Dockerfile pins.
+# Reusable build/push of the image. Called by docker.yml (manual tag releases)
+# and check-claude-update.yml (automated Claude releases). The image tag
+# (`version`) is independent of the Claude Code version baked in
+# (`claudeVersion`): a manual release can be tagged 0.2.0 while shipping
+# whatever Claude the Dockerfile pins, and an automated Claude bump tags the
+# image with the Claude version itself.
 
 on:
   workflow_call:
     inputs:
       version:
-        description: Claude Code version to build and tag (e.g. 2.1.159)
+        description: Image tag to publish (e.g. 0.2.0 or 2.1.159)
+        required: true
+        type: string
+      claudeVersion:
+        description: Claude Code version to bake in via build-arg, also smoke-tested
         required: true
         type: string
 
@@ -61,7 +67,7 @@ jobs:
           load: true
           tags: claude-code-dotnet:smoke-test
           build-args: |
-            CLAUDE_CODE_VERSION=${{ inputs.version }}
+            CLAUDE_CODE_VERSION=${{ inputs.claudeVersion }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -71,8 +77,8 @@ jobs:
           echo "== claude --version =="
           claude_ver=$(docker run --rm "$img" claude --version)
           echo "$claude_ver"
-          echo "$claude_ver" | grep -q "${{ inputs.version }}" \
-            || { echo "::error::claude --version did not report ${{ inputs.version }}"; exit 1; }
+          echo "$claude_ver" | grep -q "${{ inputs.claudeVersion }}" \
+            || { echo "::error::claude --version did not report ${{ inputs.claudeVersion }}"; exit 1; }
           echo "== dotnet --version =="
           docker run --rm "$img" dotnet --version
           echo "== dotnet global tools =="
@@ -84,7 +90,7 @@ jobs:
           context: .
           push: true
           build-args: |
-            CLAUDE_CODE_VERSION=${{ inputs.version }}
+            CLAUDE_CODE_VERSION=${{ inputs.claudeVersion }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
