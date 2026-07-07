@@ -18,7 +18,7 @@ RUN chmod +x /tmp/install-plugins.sh && /tmp/install-plugins.sh
 # check-claude-update workflow (.github/workflows/check-claude-update.yml),
 # which opens a PR whenever downloads.claude.ai/.../latest moves ahead of this.
 # Downloaded last in this stage because it changes most often.
-ARG CLAUDE_CODE_VERSION=2.1.201
+ARG CLAUDE_CODE_VERSION=2.1.202
 RUN base="https://downloads.claude.ai/claude-code-releases" && \
   case "$(dpkg --print-architecture)" in \
     amd64) platform="linux-x64" ;; \
